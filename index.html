@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Visita ACS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      padding: 20px;
+    }
+    h1 {
+      color: #58a6ff;
+    }
+    .section {
+      margin-bottom: 20px;
+      background: #161b22;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(88, 166, 255, 0.2);
+    }
+    .accordion {
+      background-color: #21262d;
+      color: white;
+      cursor: pointer;
+      padding: 10px;
+      margin-top: 10px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      transition: 0.3s;
+      border-radius: 8px;
+    }
+    .accordion:hover {
+      background-color: #30363d;
+    }
+    .panel {
+      padding: 0 10px;
+      display: none;
+      overflow: hidden;
+      background-color: #161b22;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+    label {
+      display: block;
+      margin: 8px 0 4px;
+    }
+    input, select {
+      width: 100%;
+      padding: 6px;
+      border-radius: 4px;
+      border: none;
+      background-color: #0d1117;
+      color: white;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 15px;
+      background-color: #238636;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #2ea043;
+    }
+  </style>
+</head>
+<body>
+  <h1>Registro de Visita - ACS</h1>
+  <div class="section">
+    <label for="endereco">Endereço:</label>
+    <input type="text" id="endereco" />
+    <label for="quantidade">Quantidade de Pessoas na Casa:</label>
+    <input type="number" id="quantidade" min="1" />
+    <button onclick="gerarIndividuos()">Gerar Campos</button>
+  </div>
+  <div id="individuos" class="section"></div>
+  <div class="section">
+    <button onclick="baixarCSV()">Baixar Lista de Pacientes</button>
+  </div>
+
+  <script>
+    function gerarIndividuos() {
+      const container = document.getElementById('individuos');
+      container.innerHTML = '';
+      const quantidade = parseInt(document.getElementById('quantidade').value);
+      for (let i = 1; i <= quantidade; i++) {
+        const acc = document.createElement('button');
+        acc.className = 'accordion';
+        acc.innerText = 'Indivíduo ' + i;
+        const panel = document.createElement('div');
+        panel.className = 'panel';
+        panel.innerHTML = `
+          <label>Nome:</label><input type="text" class="nome"/>
+          <label>Idade:</label><select class="idade">${[...Array(111).keys()].map(i => `<option value="${i}">${i}</option>`).join('')}</select>
+          <label>Sexo:</label><select class="sexo"><option value="Masculino">Masculino</option><option value="Feminino">Feminino</option></select>
+          <label>Comorbidade:</label><input type="text" class="comorbidade"/>
+          <label>Número do SUS:</label><input type="text" class="sus"/>
+          <label>CPF:</label><input type="text" class="cpf"/>
+        `;
+        acc.onclick = function () {
+          this.classList.toggle("active");
+          const panel = this.nextElementSibling;
+          panel.style.display = panel.style.display === "block" ? "none" : "block";
+        };
+        container.appendChild(acc);
+        container.appendChild(panel);
+      }
+    }
+
+    function baixarCSV() {
+      const dados = [];
+      const endereco = document.getElementById('endereco').value;
+      const individuos = document.querySelectorAll('.panel');
+      individuos.forEach((panel, i) => {
+        const nome = panel.querySelector('.nome').value;
+        const idade = panel.querySelector('.idade').value;
+        const sexo = panel.querySelector('.sexo').value;
+        const comorbidade = panel.querySelector('.comorbidade').value;
+        const sus = panel.querySelector('.sus').value;
+        const cpf = panel.querySelector('.cpf').value;
+        dados.push([endereco, `Indivíduo ${i + 1}`, nome, idade, sexo, comorbidade, sus, cpf]);
+      });
+      let csv = "Endereço,Indivíduo,Nome,Idade,Sexo,Comorbidade,SUS,CPF\n";
+      dados.forEach(linha => csv += linha.join(",") + "\n");
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'pacientes.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  </script>
+</body>
+</html>
